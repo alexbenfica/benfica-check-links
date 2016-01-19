@@ -1,0 +1,12 @@
+/nbproject/private/
+.project
+.pydevproject
+.settings/.svn/all-wcprops
+.settings/.svn/entries
+.settings/.svn/format
+.settings/.svn/prop-base/org.eclipse.core.resources.prefs.svn-base
+.settings/.svn/text-base/org.eclipse.core.resources.prefs.svn-base
+.settings/org.eclipse.core.resources.prefs
+nbproject/project.properties
+nbproject/project.xml
+*.pyc
