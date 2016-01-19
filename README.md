@@ -2,7 +2,7 @@
 
 # What does it do?
 
-Allow you to check for broken links from a base url.
+Allows you to check for broken links in all internal pages of a website. 
 
 It is used for some specific tasks:
 - find broken urls on pages
