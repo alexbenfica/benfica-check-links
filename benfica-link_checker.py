@@ -95,7 +95,7 @@ class checkLinks():
         url_list= []        
         forbidden_urls = ['#', None, ""]
         
-        soup = BeautifulSoup(html)        
+        soup = BeautifulSoup(html, "html.parser")
         for item in soup.find_all(attrs={'href': ''}):
             for link in item.find_all('a'):
                 url = link.get('href')        
