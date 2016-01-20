@@ -10,6 +10,8 @@ It is used for some specific tasks:
 
 # How to use it?
 
-python benfica_link_checker --help
+python benfica_link_checker.py --help
 
-It is simple but not really fast. Enjoy it!
+It is simple but not too fast, just enough to my needs! :)
+
+Enjoy it!
