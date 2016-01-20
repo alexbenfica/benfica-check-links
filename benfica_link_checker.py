@@ -65,13 +65,16 @@ class checkLinks():
     def setUrlStatus(self, url, status):
         self.urls[url]['status'] = status
     
-    def sanitizeUrl(self, url):        
+    def sanitizeUrl(self, url, ref):                
+        if not url: return ''
+        # Ignore internal references urls
+        if url.startswith('#'): return ''
         # Add url domain when necessary
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
     
     def addUrlToCheck(self, url, ref):        
-        url = self.sanitizeUrl(url)
+        url = self.sanitizeUrl(url, ref)
         if not url: return 0
         
         # if not on list or urls, add it!
@@ -97,21 +100,16 @@ class checkLinks():
 
 
     def getUrlsFromHtml(self, html):
-        url_list= []        
-        forbidden_urls = ['#', None, ""]
+        url_list= []                
         
         soup = BeautifulSoup(html, "html.parser")
         for item in soup.find_all(attrs={'href': ''}):
-            for link in item.find_all('a'):
-                url = link.get('href')        
-                if url not in forbidden_urls:
-                    url_list.append(url)
+            for link in item.find_all('a'):                
+                url_list.append(link.get('href'))
                 
         for item in soup.find_all(attrs={'src': ''}):
-            for link in item.find_all('img'):
-                url = link.get('src')        
-                if url not in forbidden_urls:
-                    url_list.append(url)
+            for link in item.find_all('img'):                
+                url_list.append(link.get('src'))
         
         # remove duplicates from urls
         url_list = list(set(url_list))       
