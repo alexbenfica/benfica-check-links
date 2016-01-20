@@ -10,7 +10,7 @@ It is used for some specific tasks:
 
 # How to use it?
 
-python benfica_link_checker.py --help
+~python benfica_link_checker.py --help
 
 It is simple but not too fast, just enough to my needs! :)
 
