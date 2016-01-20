@@ -13,6 +13,9 @@ from bs4 import BeautifulSoup
 import codecs
 from arguments import *
 
+# pip install colorama
+from colorama import Fore
+
 
 # Recursive check for broken links of all internal pages of a website
 # Does not follow external urls.
@@ -153,7 +156,10 @@ class checkLinks():
         self.avgTime = self.totalTime / self.totalUrlsChecked
 
         
-        print '#%d  %.1fs  ~%.2fs | status %d | %d found | +%d added | %d on queue (ETA %.0fs)' % (
+        
+
+        
+        msg = '#%d  %.1fs  ~%.2fs | status %d | %d found | +%d added | %d on queue (ETA %.0fs)' % (
             self.totalUrlsChecked, 
             self.totalTime, 
             self.avgTime, 
@@ -163,6 +169,13 @@ class checkLinks():
             len(self.urlsToCheck), 
             self.avgTime * len(self.urlsToCheck)
         )
+        
+        
+        
+        if code < 399: color = Fore.GREEN
+        else: color = Fore.RED
+        
+        print color + msg + Fore.WHITE
 
 
         
@@ -213,7 +226,7 @@ class checkLinks():
     def saveHTMLReport(markdown_txt, outputReportTo):
         # Deal with files and directory names
         outputReportTo = os.path.abspath(outputReportTo)        
-        resourceDir = os.path.abspath('resources')
+        resourceDir = os.path.abspath('./resources')
         htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
         cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
         htmlOutputFile = os.path.join(outputReportTo, 'benfica-link-checker-report.html')
