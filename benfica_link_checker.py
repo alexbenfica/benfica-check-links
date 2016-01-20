@@ -27,6 +27,7 @@ class checkLinks():
         print 'Starting checkLink class with base url: %s' % baseUrl        
         self.baseUrl = baseUrl
         self.baseUrlDomain = self.getUrlDomain(self.baseUrl)
+        print 'Domain is: %s' % self.baseUrlDomain        
         self.urls = {}        
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
@@ -37,7 +38,8 @@ class checkLinks():
         return domain
         
     def isUrlInternal(self, url):
-        return self.getUrlDomain(url) == self.baseUrlDomain
+        # ignore www when comparing
+        return self.getUrlDomain(url).replace('www.','') == self.baseUrlDomain.replace('www.','')
     
     def isUrlChecked(self,url):        
         return self.getUrlStatus(url) > 0
