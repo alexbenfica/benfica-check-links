@@ -134,6 +134,7 @@ class checkLinks():
         # @todo (show each error meaning on reports)
         except urllib2.URLError: code = 999
         except ValueError: code = 998
+        except socket.timeout: code = 997
         
 
         self.setUrlStatus(url,code)
