@@ -226,7 +226,8 @@ class checkLinks():
     def saveHTMLReport(markdown_txt, outputReportTo):
         # Deal with files and directory names
         outputReportTo = os.path.abspath(outputReportTo)        
-        resourceDir = os.path.abspath('./resources')
+        resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
+        print resourceDir
         htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
         cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
         htmlOutputFile = os.path.join(outputReportTo, 'benfica-link-checker-report.html')
@@ -241,7 +242,6 @@ class checkLinks():
         codecs.open(cssOutPutFile,'w+',encoding='utf-8').write(css)
                 
         
-
 
 
 
