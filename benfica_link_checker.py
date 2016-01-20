@@ -32,9 +32,16 @@ class checkLinks():
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
         
-    def getUrlDomain(self,url):
-        parsed_uri = urlparse(url)
-        domain = '{uri.netloc}'.format(uri=parsed_uri)
+    def getUrlDomain(self,url):        
+        try:
+            parsed_uri = urlparse(url)
+            domain = '{uri.netloc}'.format(uri=parsed_uri)
+        except:
+            print 'Failed to identify domain for URL: %s' % url
+            parsed_uri = urlparse(urllib2.quote(url.encode("utf8")))            
+            domain = '{uri.netloc}'.format(uri=parsed_uri)        
+        #print domain        
+        #exit()
         return domain
         
     def isUrlInternal(self, url):
@@ -117,29 +124,33 @@ class checkLinks():
         
         
     def checkUrl(self, url):             
+        self.totalUrlsChecked += 1                
         msg = ''
         if not self.isUrlInternal(url): msg += ' (EXTERNAL) '
         if self.isUrlOfImage(url): msg += '(IMAGE) '
         
-        print "\nChecking url: %s %s" % (msg, url)
+        print "\n #%d  Checking url: %s %s" % (self.totalUrlsChecked, msg, url)
+        refs = self.getUrlRef(url)        
+        if refs: print Fore.YELLOW + u"  \u21b8" +  Fore.WHITE + "    First linked from: %s " % refs[0]
         
-        self.totalUrlsChecked += 1        
+        
         try:
             response = urllib2.urlopen(url, timeout = 10)
             code = response.code
             encoding = response.headers.getparam('charset')
+            if not encoding: encoding = 'UTF-8' # force if not find!
         
         # @todo (show each error meaning on reports)
         except urllib2.URLError: code = 999
         except ValueError: code = 998
         except socket.timeout: code = 997
-        
+        except socket.error: code = 996
 
         self.setUrlStatus(url,code)
         self.urlsToCheck.remove(url)
         
         newUrlsAddedCount = 0        
-        urls=[]
+        urls=[]        
         # if no error detected...
         if code < 400:
             # if internal and not image, follow...
@@ -160,8 +171,7 @@ class checkLinks():
         
 
         
-        msg = '#%d  %.1fs  ~%.2fs | status %d | %d found | +%d added | %d on queue (ETA %.0fs)' % (
-            self.totalUrlsChecked, 
+        msg = '         %.1fs  ~%.2fs | status %d | %d found | +%d added | %d on queue (ETA %.0fs)' % (             
             self.totalTime, 
             self.avgTime, 
             code, 
