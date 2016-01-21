@@ -18,6 +18,12 @@ from colorama import Fore
 from arguments import *
 
 
+# To debug requests sessions...
+#import logging
+#logging.basicConfig(level=logging.INFO, format="%(message)s")
+
+
+
 # Recursive check for broken links of all internal pages of a website
 # Does not follow external urls.
 class checkLinks():   
