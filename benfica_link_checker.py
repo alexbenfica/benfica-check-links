@@ -3,18 +3,19 @@
 # Alex Benfica <alexbenfica@gmail.com>
 
 import os
-import urllib2
-import socket
-from urlparse import urlparse
 import time
-import markdown
-import pprint as pp
-from bs4 import BeautifulSoup
 import codecs
-from arguments import *
+import datetime
+import requests
+import markdown
+import tldextract
+import pprint as pp
 
-# pip install colorama
+from urlparse import urlparse
+from bs4 import BeautifulSoup
 from colorama import Fore
+
+from arguments import *
 
 
 # Recursive check for broken links of all internal pages of a website
@@ -32,21 +33,19 @@ class checkLinks():
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
         
-    def getUrlDomain(self,url):        
-        try:
-            parsed_uri = urlparse(url)
-            domain = '{uri.netloc}'.format(uri=parsed_uri)
-        except:
-            print 'Failed to identify domain for URL: %s' % url
-            parsed_uri = urlparse(urllib2.quote(url.encode("utf8")))            
-            domain = '{uri.netloc}'.format(uri=parsed_uri)        
-        #print domain        
-        #exit()
+    def getUrlDomain(self,url):                
+        ext = tldextract.extract(url)        
+        # ignore www. The subdomain is only important when it is something else
+        if ext.subdomain == 'www': domain = '.'.join(ext[1:3])
+        else: domain = '.'.join(ext[0:3])        
+        domain = domain.strip().strip('.').lower()
         return domain
         
-    def isUrlInternal(self, url):
+    def isUrlInternal(self, url):        
         # ignore www when comparing
-        return self.getUrlDomain(url).replace('www.','') == self.baseUrlDomain.replace('www.','')
+        urlDomain = self.getUrlDomain(url).replace('www.','')
+        baseUrlDomain = self.baseUrlDomain.replace('www.','')
+        return urlDomain == baseUrlDomain
     
     def isUrlChecked(self,url):        
         return self.getUrlStatus(url) > 0
@@ -79,11 +78,16 @@ class checkLinks():
         # Add url domain when necessary
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
+
+    def statusIsError(self, status):
+        if not isinstance(status, int ): return 1
+        if status > 399: return 1
+        return 0
     
     def addUrlToCheck(self, url, ref):        
         url = self.sanitizeUrl(url, ref)
         if not url: return 0
-        
+
         # if not on list or urls, add it!
         if not self.urls.get(url,{}): self.urls[url] = {'ref':[], 'status':0}
 
@@ -91,8 +95,7 @@ class checkLinks():
         self.addUrlRef(url,ref)
         
         # if already on the list of urlsToCheck, do not add againg
-        if url in self.urlsToCheck: return 0            
-        
+        if url in self.urlsToCheck: return 0                    
         if self.isUrlChecked(url): return 0
         
         # add external links first, as they broke more often
@@ -128,63 +131,58 @@ class checkLinks():
         msg = ''
         if not self.isUrlInternal(url): msg += ' (EXTERNAL) '
         if self.isUrlOfImage(url): msg += '(IMAGE) '
+        # get only head when the content is not important! (images and external)        
+        onlyHead = not self.isUrlInternal(url) or self.isUrlOfImage(url)            
+        if onlyHead: msg += '(HEAD ONLY) '
         
         print "\n #%d  Checking url: %s %s" % (self.totalUrlsChecked, msg, url)
         refs = self.getUrlRef(url)        
         if refs: print Fore.YELLOW + u"  \u21b8" +  Fore.WHITE + "    First linked from: %s " % refs[0]
-        
-        
-        try:
-            response = urllib2.urlopen(url, timeout = 10)
-            code = response.code
-            encoding = response.headers.getparam('charset')
-            if not encoding: encoding = 'UTF-8' # force if not find!
-        
-        # @todo (show each error meaning on reports)
-        except urllib2.URLError: code = 999
-        except ValueError: code = 998
-        except socket.timeout: code = 997
-        except socket.error: code = 996
 
-        self.setUrlStatus(url,code)
+        tRequest = time.time()
+        timeout = 15
+        try:
+            if onlyHead: r = requests.head(url, timeout=timeout)            
+            else: r = requests.get(url, timeout=timeout)
+            status = r.status_code
+        except Exception as exception:
+            #except requests.exceptions.ConnectionError:
+            status = exception.__class__.__name__
+            
+        tRequest = time.time() - tRequest
+                
+        self.setUrlStatus(url,status)
         self.urlsToCheck.remove(url)
         
         newUrlsAddedCount = 0        
         urls=[]        
-        # if no error detected...
-        if code < 400:
-            # if internal and not image, follow...
-            if self.isUrlInternal(url):                
-                if not self.isUrlOfImage(url):
-                    html = response.read().decode(encoding)                
-                    urls = self.getUrlsFromHtml(html)
-                    # Add new urls to list
-                    ref = url # for clarity reasons only
-                    for newUrls in urls: 
-                        newUrlsAddedCount += self.addUrlToCheck(newUrls, ref)
+        # if status is a number...
+        if isinstance(status, int ):
+            if r.text:
+                urls = self.getUrlsFromHtml(r.text)
+                # Add new urls to list
+                ref = url # for clarity reasons only
+                for newUrls in urls: newUrlsAddedCount += self.addUrlToCheck(newUrls, ref)
         
         # All verbose info grouped here...
         self.totalTime = time.time() - self.t0
         self.avgTime = self.totalTime / self.totalUrlsChecked
 
+        eta = int(self.avgTime * len(self.urlsToCheck))
         
-        
-
-        
-        msg = '         %.1fs  ~%.2fs | status %d | %d found | +%d added | %d on queue (ETA %.0fs)' % (             
-            self.totalTime, 
+        msg = '         +%.2fs ~%.2fs   %s %s  | status %s | +%d new of %d | %d on queue | time left: %s' % (             
+            tRequest,
             self.avgTime, 
-            code, 
-            len(urls), 
+            u"\u03A3",            
+            "{:0>8}".format(datetime.timedelta(seconds=int(self.totalTime))),             
+            status, 
             newUrlsAddedCount, 
+            len(urls), 
             len(self.urlsToCheck), 
-            self.avgTime * len(self.urlsToCheck)
+            "{:0>8}".format(datetime.timedelta(seconds=eta))
         )
         
-        
-        
-        if code < 399: color = Fore.GREEN
-        else: color = Fore.RED
+        color = (Fore.GREEN, Fore.RED)[self.statusIsError(status)]
         
         print color + msg + Fore.WHITE
 
