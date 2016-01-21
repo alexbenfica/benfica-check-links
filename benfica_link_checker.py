@@ -32,6 +32,7 @@ class checkLinks():
         self.urls = {}        
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
+        self.startSession()
         
     def getUrlDomain(self,url):                
         ext = tldextract.extract(url)        
@@ -126,6 +127,9 @@ class checkLinks():
         return url_list
         
         
+    def startSession(self):
+        self.session = requests.Session()
+        
     def checkUrl(self, url):             
         self.totalUrlsChecked += 1                
         msg = ''
@@ -142,8 +146,10 @@ class checkLinks():
         tRequest = time.time()
         timeout = 15
         try:
-            if onlyHead: r = requests.head(url, timeout=timeout)            
-            else: r = requests.get(url, timeout=timeout)
+            if onlyHead: 
+                r = self.session.head(url, timeout=timeout)            
+            else: 
+                r = self.session.get(url, timeout=timeout)
             status = r.status_code
         except Exception as exception:
             #except requests.exceptions.ConnectionError:
