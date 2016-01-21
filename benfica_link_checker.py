@@ -19,8 +19,8 @@ from arguments import *
 
 
 # To debug requests sessions...
-#import logging
-#logging.basicConfig(level=logging.INFO, format="%(message)s")
+import logging
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 
@@ -175,6 +175,10 @@ class checkLinks():
                 # Add new urls to list
                 ref = url # for clarity reasons only
                 for newUrls in urls: newUrlsAddedCount += self.addUrlToCheck(newUrls, ref)
+                
+                # reorder list to get more sessions reused
+                urls.sort()
+                
         
         # All verbose info grouped here...
         self.totalTime = time.time() - self.t0
