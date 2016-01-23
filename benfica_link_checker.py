@@ -78,10 +78,12 @@ class checkLinks():
     def setUrlStatus(self, url, status):
         self.urls[url]['status'] = status
     
-    def sanitizeUrl(self, url, ref):                
+    def sanitizeUrl(self, url, ref):                        
         if not url: return ''
         # Ignore internal references urls
         if url.startswith('#'): return ''
+        # ignore mailto urls
+        if url.startswith('mailto:'): return ''
         # Add url domain when necessary
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
@@ -206,11 +208,12 @@ class checkLinks():
         
     def start(self):
         self.totalUrlsChecked = 0
+        self.startTime = datetime.datetime.now()
         self.t0 = time.time()
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            #if self.totalUrlsChecked == 2: break            
+            #if self.totalUrlsChecked == 2: break
         
         
     def createReport(self):
@@ -220,7 +223,9 @@ class checkLinks():
         addTxt('## Base url: [%s](%s)' % (self.baseUrl, self.baseUrl))
         addTxt('### Some statistics:')
         addTxt('* Total urls checked: %d' % self.totalUrlsChecked)
-        addTxt('* Total time spent: %d s' % self.totalTime)
+        addTxt('* Start time: %s' % self.startTime.strftime('%d/%m/%Y %H:%M:%S'))
+        addTxt('* End time: %s' % datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
+        addTxt('* Total time spent: %s' % "{:0>8}".format(datetime.timedelta(seconds=int(self.totalTime))))
         addTxt('* Average check time per url: %.2f s' % self.avgTime)
         
         minHttpCodeAsError = 399
@@ -251,7 +256,7 @@ class checkLinks():
     def saveHTMLReport(markdown_txt, outputReportTo):
         # Deal with files and directory names
         outputReportTo = os.path.abspath(outputReportTo)        
-        resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')        
+        resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')                
         htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
         cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
         htmlOutputFile = os.path.join(outputReportTo, 'benfica-link-checker-report.html')
