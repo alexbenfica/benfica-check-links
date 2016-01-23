@@ -105,14 +105,14 @@ class checkLinks():
         if url in self.urlsToCheck: return 0                    
         if self.isUrlChecked(url): return 0
         
-        # add external links first, as they broke more often
-        # the referer is not need here as it were already add to the main dict self.urls        
-        # add to the end...
-        if self.isUrlInternal(url):            
-            self.urlsToCheck.append(url)
+        # if links are from the same domain, add first to ensure max reuse of http connections
+        nCharsToCompare = min(20,len(url),len(ref))
+        if url[0:nCharsToCompare] == ref[0:nCharsToCompare]:            
+            # add to beginning when it from the same domain
+            self.urlsToCheck.insert(0,url)
         else:
             # add to the list beginning
-            self.urlsToCheck.insert(0,url)
+            self.urlsToCheck.append(url)
         return 1
 
 
