@@ -12,6 +12,6 @@ It is used for some specific tasks:
 
 ```python benfica_link_checker.py --help```
 
-It is simple but not too fast, just enough to my needs! :)
+It is simple and really fast as it reuses http socket connections!
 
 Enjoy it!
