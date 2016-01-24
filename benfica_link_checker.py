@@ -3,6 +3,7 @@
 # Alex Benfica <alexbenfica@gmail.com>
 
 import os
+import sys
 import time
 import codecs
 import datetime
@@ -16,11 +17,6 @@ from bs4 import BeautifulSoup
 from colorama import Fore
 
 from arguments import *
-
-
-# To debug requests sessions...
-import logging
-logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 
@@ -98,14 +94,15 @@ class checkLinks():
         if not url: return 0
 
         # if not on list or urls, add it!
-        if not self.urls.get(url,{}): self.urls[url] = {'ref':[], 'status':0}
+        if not self.urls.get(url,{}): self.urls[url] = {'ref':[], 'status':0}   
 
-        # add referer
-        self.addUrlRef(url,ref)
         
         # if already on the list of urlsToCheck, do not add againg
         if url in self.urlsToCheck: return 0                    
         if self.isUrlChecked(url): return 0
+        
+        # add referer
+        self.addUrlRef(url,ref)
         
         # if links are from the same domain, add first to ensure max reuse of http connections
         nCharsToCompare = min(20,len(url),len(ref))
@@ -137,7 +134,8 @@ class checkLinks():
         
     def startSession(self):
         self.session = requests.Session()
-        
+
+    
     def checkUrl(self, url):             
         self.totalUrlsChecked += 1                
         msg = ''
@@ -213,7 +211,7 @@ class checkLinks():
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            #if self.totalUrlsChecked == 2: break
+            if self.totalUrlsChecked == 2: break
         
         
     def createReport(self):
