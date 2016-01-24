@@ -230,7 +230,7 @@ class checkLinks():
         
         minHttpCodeAsError = 399
         nProblems = 0
-        for url in self.urls.keys():            
+        for url, value in self.urls.iteritems():        
             if self.getUrlStatus(url) > minHttpCodeAsError:
                 nProblems += 1
                 status = "%s " % self.urls[url].get('status')                
