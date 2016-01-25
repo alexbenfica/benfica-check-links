@@ -244,7 +244,7 @@ class checkLinks():
                         addTxt()
                     
                 for ref in referrers[0:refToShow]: addTxt("> * Fix here: [%s](%s)" % (ref,ref))
-                
+        
         addTxt('#### Total urls with problems: %d' % nProblems)        
         return self.markdown_txt
 
@@ -283,7 +283,9 @@ for url in urls:
     cLink.start()    
     # Save reports to to file...
     markdown_txt += cLink.createReport()
+    # Remove object from memory
+    del cLink
     
-# aggregate reports on HTML    
-cLink.saveHTMLReport(markdown_txt, outputDir)    
+# aggregate reports on HTML calling stactic method
+checkLinks.saveHTMLReport(markdown_txt, outputDir)    
     
