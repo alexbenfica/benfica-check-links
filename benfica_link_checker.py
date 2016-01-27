@@ -95,10 +95,6 @@ class checkLinks():
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
 
-    def statusIsError(self, status):
-        if not isinstance(status, int ): return 1
-        if status > 399: return 1
-        return 0
     
     def addUrlToCheck(self, url, ref):        
         url = self.sanitizeUrl(url, ref)
@@ -219,7 +215,7 @@ class checkLinks():
             "{:0>8}".format(datetime.timedelta(seconds=eta))
         )
         
-        color = (Fore.GREEN, Fore.RED)[self.statusIsError(status)]
+        color = (Fore.GREEN, Fore.RED)[checkLinks.statusIsError(status)]
         
         print color + msg + Fore.WHITE
 
@@ -250,17 +246,24 @@ class checkLinks():
         minHttpCodeAsError = 300
         nProblems = 0
         for url, value in self.urls.iteritems():        
-            if self.getUrlStatus(url) > minHttpCodeAsError:
+            status = "%s " % self.urls[url].get('status')
+            if checkLinks.statusIsError(status):
                 nProblems += 1
-                status = "%s " % self.urls[url].get('status')                
                 addTxt('####' + status + "| [%s](%s)" % (url,url))
                 addTxt()
                 # get referers
                 referrers = self.getUrlRef(url)                
-                for ref in referrers[0:refToShow]: addTxt("> * Fix here: [%s](%s)" % (ref,ref))
+                for ref in referrers: addTxt("> * Fix here: [%s](%s)" % (ref,ref))
         
         addTxt('#### Total urls with problems: %d' % nProblems)        
         return self.markdown_txt
+
+
+    @staticmethod
+    def statusIsError(status):
+        if not isinstance(status, int ): return 1
+        if status > 300: return 1
+        return 0
 
 
 
