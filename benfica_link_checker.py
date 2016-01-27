@@ -88,8 +88,9 @@ class checkLinks():
         if url.startswith('#'): return ''
         # ignore mailto urls
         if url.startswith('mailto:'): return ''
-        # ignore ?replytocom urls on WordPress ... ok... it should be in configuration file!
+        # ignore ?replytocom and #respond urls on WordPress ... ok... it should be in configuration file!
         if '?replytocom' in url: return ''
+        if url.endswith('#respond'): return ''
         # Add url domain when necessary        
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
