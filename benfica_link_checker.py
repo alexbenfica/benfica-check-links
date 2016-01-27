@@ -249,7 +249,7 @@ class checkLinks():
             status = self.urls[url].get('status')
             if checkLinks.statusIsError(status):
                 nProblems += 1
-                addTxt('####' + status + "| [%s](%s)" % (url,url))
+                addTxt("#### %s | [%s](%s)" % (status, rl,url))
                 addTxt()
                 # get referers
                 referrers = self.getUrlRef(url)                
