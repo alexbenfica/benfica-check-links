@@ -15,6 +15,7 @@ import pprint as pp
 from urlparse import urlparse
 from bs4 import BeautifulSoup
 from colorama import Fore
+from mimetypes import MimeTypes
 
 from arguments import *
 
@@ -35,6 +36,7 @@ class checkLinks():
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
         self.startSession()
+        self.mime = MimeTypes()
         
     def getUrlDomain(self,url):                
         ext = tldextract.extract(url)        
@@ -50,11 +52,17 @@ class checkLinks():
         baseUrlDomain = self.baseUrlDomain.replace('www.','')
         return urlDomain == baseUrlDomain
     
-    def isUrlChecked(self,url):        
+    def isUrlChecked(self,url):                
         return self.getUrlStatus(url) > 0
 
-    def isUrlOfImage(self,url):        
-        return url.lower().endswith(self.imageExtensions)
+    def isUrlOfFile(self,url):        
+        url = url.lower()
+        mime_type = self.mime.guess_type(url)[0]
+        if mime_type:
+            type, sub_type = mime_type.split('/')        
+            #print url, type, sub_type
+            if type != 'text': return True            
+        return False
     
     def addUrlRef(self, url, ref):
         # no need to check for repeats as a url will not have the same referer twice
@@ -80,7 +88,9 @@ class checkLinks():
         if url.startswith('#'): return ''
         # ignore mailto urls
         if url.startswith('mailto:'): return ''
-        # Add url domain when necessary
+        # ignore ?replytocom urls on WordPress ... ok... it should be in configuration file!
+        if '?replytocom' in url: return ''
+        # Add url domain when necessary        
         if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
         return url
 
@@ -95,7 +105,6 @@ class checkLinks():
 
         # if not on list or urls, add it!
         if not self.urls.get(url,{}): self.urls[url] = {'ref':[], 'status':0}   
-
         
         # if already on the list of urlsToCheck, do not add againg
         if url in self.urlsToCheck: return 0                    
@@ -134,35 +143,46 @@ class checkLinks():
         
     def startSession(self):
         self.session = requests.Session()
-
+        # Use some common user agent header to avoid beibg blocked
+        self.requestHeaders = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
     
     def checkUrl(self, url):             
         self.totalUrlsChecked += 1                
-        msg = ''
-        if not self.isUrlInternal(url): msg += ' (EXTERNAL) '
-        if self.isUrlOfImage(url): msg += '(IMAGE) '
+        msg = ''        
         # get only head when the content is not important! (images and external)        
-        onlyHead = not self.isUrlInternal(url) or self.isUrlOfImage(url)            
-        if onlyHead: msg += '(HEAD ONLY) '
+        onlyHead = not self.isUrlInternal(url) or self.isUrlOfFile(url)            
+        if onlyHead: msg += Fore.YELLOW + '(HTTP HEAD) ' + Fore.WHITE
+        else: msg += '(HTTP GET) '
+        if not self.isUrlInternal(url): msg += ' (EXTERNAL) '
+        if self.isUrlOfFile(url): msg += '(FILE) '
         
         print "\n #%d  Checking url: %s %s" % (self.totalUrlsChecked, msg, url)
         refs = self.getUrlRef(url)        
-        if refs: print Fore.YELLOW + u"  \u21b8" +  Fore.WHITE + "    First linked from: %s " % refs[0]
+        if refs: 
+            print Fore.YELLOW + u"  \u21b8" +  Fore.WHITE + "    First linked from: %s " % refs[0]
 
         tRequest = time.time()
         timeout = 15
         try:
             if onlyHead: 
-                r = self.session.head(url, timeout=timeout)            
+                r = self.session.head(url, timeout=timeout, headers=self.requestHeaders)                            
             else: 
-                r = self.session.get(url, timeout=timeout)
+                r = self.session.get(url, timeout=timeout, headers=self.requestHeaders)
             status = r.status_code
-        except Exception as exception:
-            #except requests.exceptions.ConnectionError:
-            status = exception.__class__.__name__
+            
+            # if the real content type is text and not binary, get the complete content!
+            # only get again if urls exists!
+            if onlyHead and r.status_code < 399 and self.isUrlInternal(url):
+                mimeType = r.headers.get('content-type')
+                if mimeType.startswith('text'):                    
+                    msg = ' (It is not a file, it is %s) ' % mimeType
+                    print " #%d  Checking url: (HTTP GET)! %s %s" % (self.totalUrlsChecked, msg, url)
+                    r = self.session.get(url, timeout=timeout, headers=self.requestHeaders)                    
+                    status = r.status_code          
+                    
+        except Exception as exception: status = exception.__class__.__name__
             
         tRequest = time.time() - tRequest
-                
         self.setUrlStatus(url,status)
         self.urlsToCheck.remove(url)
         
@@ -178,7 +198,7 @@ class checkLinks():
                 
                 # reorder list to get more sessions reused
                 urls.sort()
-                
+        
         
         # All verbose info grouped here...
         self.totalTime = time.time() - self.t0
