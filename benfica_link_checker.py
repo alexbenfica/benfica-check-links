@@ -246,7 +246,7 @@ class checkLinks():
         minHttpCodeAsError = 300
         nProblems = 0
         for url, value in self.urls.iteritems():        
-            status = "%s " % self.urls[url].get('status')
+            status = self.urls[url].get('status')
             if checkLinks.statusIsError(status):
                 nProblems += 1
                 addTxt('####' + status + "| [%s](%s)" % (url,url))
