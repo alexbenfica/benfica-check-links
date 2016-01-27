@@ -247,7 +247,7 @@ class checkLinks():
         addTxt('* Total time spent: %s' % "{:0>8}".format(datetime.timedelta(seconds=int(self.totalTime))))
         addTxt('* Average check time per url: %.2f s' % self.avgTime)
         
-        minHttpCodeAsError = 399
+        minHttpCodeAsError = 301
         nProblems = 0
         for url, value in self.urls.iteritems():        
             if self.getUrlStatus(url) > minHttpCodeAsError:
@@ -257,13 +257,6 @@ class checkLinks():
                 addTxt()
                 # get referers
                 referrers = self.getUrlRef(url)                
-                refToShow = len(referrers)
-                if refToShow:
-                    if refToShow > 5:
-                        refToShow = 5
-                        addTxt('Too many referrers for this url. Showing first %d of %d.' % (refToShow, len(referrers)))
-                        addTxt()
-                    
                 for ref in referrers[0:refToShow]: addTxt("> * Fix here: [%s](%s)" % (ref,ref))
         
         addTxt('#### Total urls with problems: %d' % nProblems)        
