@@ -16,7 +16,6 @@ from urlparse import urlparse
 from bs4 import BeautifulSoup
 from colorama import Fore
 from mimetypes import MimeTypes
-
 from arguments import *
 
 
@@ -156,7 +155,7 @@ class checkLinks():
         print "\n #%d  Checking url: %s %s" % (self.totalUrlsChecked, msg, url)
         refs = self.getUrlRef(url)        
         if refs: 
-            print Fore.YELLOW + u"  \u21b8" +  Fore.WHITE + "    First linked from: %s " % refs[0]
+            print Fore.WHITE + "    First linked from: %s " % refs[0]
 
         tRequest = time.time()
         timeout = 15
@@ -203,10 +202,9 @@ class checkLinks():
 
         eta = int(self.avgTime * len(self.urlsToCheck))
         
-        msg = '         +%.2fs ~%.2fs   %s %s  | status %s | +%d new of %d | %d on queue | time left: %s' % (             
+        msg = '         +%.2fs ~%.2fs   %s  | status %s | +%d new of %d | %d on queue | time left: %s' % (             
             tRequest,
-            self.avgTime, 
-            u"\u03A3",            
+            self.avgTime,             
             "{:0>8}".format(datetime.timedelta(seconds=int(self.totalTime))),             
             status, 
             newUrlsAddedCount, 
