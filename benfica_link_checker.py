@@ -18,6 +18,10 @@ from colorama import Fore
 from mimetypes import MimeTypes
 from arguments import *
 
+# Solving encoding issues when running from cron.
+# https://fedoraproject.org/wiki/Features/PythonEncodingUsesSystemLocale
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 
 # Recursive check for broken links of all internal pages of a website
