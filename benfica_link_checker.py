@@ -234,9 +234,16 @@ class checkLinks():
         
         
     def createReport(self):
-        def addTxt(txt=''): self.markdown_txt += txt + "\r\n"
+        def addTxt(txt=''): 
+            self.markdown_txt += txt + "\r\n"
+
+        def addCSV(txt=''): 
+            self.csv_txt += txt + "\r\n"
+            
             
         self.markdown_txt  = ''        
+        self.csv_txt  = ''        
+        
         addTxt('## Base url: [%s](%s)' % (self.baseUrl, self.baseUrl))
         addTxt('### Some statistics:')
         addTxt('* Total urls checked: %d' % self.totalUrlsChecked)
@@ -255,10 +262,13 @@ class checkLinks():
                 addTxt()
                 # get referers
                 referrers = self.getUrlRef(url)                
-                for ref in referrers: addTxt("> * Fix here: [%s](%s)" % (ref,ref))
+                for ref in referrers: 
+                    addTxt("> * Fix here: [%s](%s)" % (ref,ref))                                    
+                    addCSV("%s,%s,%s,%s" % (self.baseUrlDomain,status,url,ref))
         
         addTxt('#### Total urls with problems: %d' % nProblems)        
-        return self.markdown_txt
+        return self.markdown_txt, self.csv_txt
+
 
 
     @staticmethod
@@ -270,23 +280,27 @@ class checkLinks():
 
 
     @staticmethod
-    def saveHTMLReport(markdown_txt, outputReportTo):
+    def saveReport(txt, outputReportDir, outPutFile):
         # Deal with files and directory names
-        outputReportTo = os.path.abspath(outputReportTo)        
-        resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')                
-        htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
-        cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
-        htmlOutputFile = os.path.join(outputReportTo, 'benfica-link-checker-report.html')
-        cssOutPutFile = os.path.join(outputReportTo, 'markdown.css')
-        if not os.path.isdir(outputReportTo): os.makedirs(outputReportTo)        
+        outputReportDir = os.path.abspath(outputReportDir)        
+        outputFile = os.path.join(outputReportDir, outPutFile)
+        if not os.path.isdir(outputReportDir): 
+            os.makedirs(outputReportDir)        
         
-        html = codecs.open(htmlTemplateFile,encoding='utf-8').read()        
-        html = html.replace('HTML_HERE',markdown.markdown(markdown_txt))
-        codecs.open(htmlOutputFile,'w+',encoding='utf-8').write(html)        
-        
-        css = codecs.open(cssTemplateFile,encoding='utf-8').read()        
-        codecs.open(cssOutPutFile,'w+',encoding='utf-8').write(css)
+        if 'html' in outPutFile:
+            resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')                
+            htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
+            cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
+            cssOutPutFile = os.path.join(outputReportDir, 'markdown.css')
+            
+            html = codecs.open(htmlTemplateFile,encoding='utf-8').read()        
+            html = html.replace('HTML_HERE',markdown.markdown(txt))
+            
+            css = codecs.open(cssTemplateFile,encoding='utf-8').read()        
+            codecs.open(cssOutPutFile,'w+',encoding='utf-8').write(css)
+            txt = html
                 
+        codecs.open(outputFile,'w+',encoding='utf-8').write(txt)        
         
 
 
@@ -296,15 +310,23 @@ urls = args.urls
 outputDir = args.outputDir
 
 markdown_txt = ''
+csv_txt = ''
+
 for url in urls:
     # Call checker for each url
     cLink = checkLinks(url)                
     cLink.start()    
-    # Save reports to to file...
-    markdown_txt += cLink.createReport()
+    
+    # Create reports in txt
+    m_txt, c_txt = cLink.createReport()
+    markdown_txt += m_txt
+    csv_txt += c_txt
+    
     # Remove object from memory
     del cLink
     
-# aggregate reports on HTML calling stactic method
-checkLinks.saveHTMLReport(markdown_txt, outputDir)    
+    
+# aggregate reports on HTML and CSV calling stactic method
+checkLinks.saveReport(markdown_txt, outputDir, 'benfica-link-checker-report.html')    
+checkLinks.saveReport(csv_txt, outputDir, 'benfica-link-checker-report.csv')    
     
