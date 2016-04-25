@@ -230,7 +230,7 @@ class checkLinks():
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            #if self.totalUrlsChecked == 2: break
+            #if self.totalUrlsChecked == 20: break
         
         
     def createReport(self):
@@ -240,9 +240,12 @@ class checkLinks():
         def addCSV(txt=''): 
             self.csv_txt += txt + "\r\n"
             
+        def addTSV(txt=''): 
+            self.tsv_txt += txt + "\r\n"
             
         self.markdown_txt  = ''        
         self.csv_txt  = ''        
+        self.tsv_txt  = ''        
         
         addTxt('## Base url: [%s](%s)' % (self.baseUrl, self.baseUrl))
         addTxt('### Some statistics:')
@@ -252,7 +255,6 @@ class checkLinks():
         addTxt('* Total time spent: %s' % "{:0>8}".format(datetime.timedelta(seconds=int(self.totalTime))))
         addTxt('* Average check time per url: %.2f s' % self.avgTime)
         
-        minHttpCodeAsError = 300
         nProblems = 0
         for url, value in self.urls.iteritems():        
             status = self.urls[url].get('status')
@@ -265,9 +267,10 @@ class checkLinks():
                 for ref in referrers: 
                     addTxt("> * Fix here: [%s](%s)" % (ref,ref))                                    
                     addCSV("%s,%s,%s,%s" % (self.baseUrlDomain,status,url,ref))
+                    addTSV("%s\t%s\t%s\t%s" % (self.baseUrlDomain,status,url,ref))
         
         addTxt('#### Total urls with problems: %d' % nProblems)        
-        return self.markdown_txt, self.csv_txt
+        return self.markdown_txt, self.csv_txt, self.tsv_txt
 
 
 
@@ -311,6 +314,7 @@ outputDir = args.outputDir
 
 markdown_txt = ''
 csv_txt = ''
+tsv_txt = ''
 
 for url in urls:
     # Call checker for each url
@@ -318,9 +322,10 @@ for url in urls:
     cLink.start()    
     
     # Create reports in txt
-    m_txt, c_txt = cLink.createReport()
+    m_txt, c_txt, t_txt = cLink.createReport()
     markdown_txt += m_txt
     csv_txt += c_txt
+    tsv_txt += t_txt
     
     # Remove object from memory
     del cLink
@@ -329,4 +334,5 @@ for url in urls:
 # aggregate reports on HTML and CSV calling stactic method
 checkLinks.saveReport(markdown_txt, outputDir, 'benfica-link-checker-report.html')    
 checkLinks.saveReport(csv_txt, outputDir, 'benfica-link-checker-report.csv')    
+checkLinks.saveReport(tsv_txt, outputDir, 'benfica-link-checker-report.tsv')    
     
