@@ -2,11 +2,14 @@
 
 # What does it do?
 
-Allows you to check for broken links in all internal pages of a website. 
+Allows you to check for broken links in all internal pages of a website and more:
+- export results to HTML
+- export results to comma separated values
+- export results to tab separated values
 
 It is used for some specific tasks:
 - find broken urls on pages
-- as a side effect, forces the caching of pages on a server
+- as a desired side effect, forces caching of pages on a server
 
 # How to use it?
 
