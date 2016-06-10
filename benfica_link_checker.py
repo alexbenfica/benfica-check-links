@@ -34,6 +34,7 @@ class checkLinks():
         print 'Starting checkLink class with base url: %s' % baseUrl        
         self.baseUrl = baseUrl
         self.baseUrlDomain = self.getUrlDomain(self.baseUrl)
+        self.baseUrlProtocol = self.baseUrl.split(':')[0]
         print 'Domain is: %s' % self.baseUrlDomain        
         self.urls = {}        
         self.urlsToCheck = []
@@ -94,8 +95,15 @@ class checkLinks():
         # ignore ?replytocom and #respond urls on WordPress ... ok... it should be in configuration file!
         if '?replytocom' in url: return ''
         if url.endswith('#respond'): return ''
-        # Add url domain when necessary        
-        if url.startswith('/'): url = 'http://' + self.baseUrlDomain + url
+
+        # Add url protocol when necessary        
+        if url.startswith('//'): 
+            url = self.baseUrlProtocol + ':' + url
+        else:        
+            # Add url domain when necessary        
+            if url.startswith('/'): 
+                url = self.baseUrlProtocol + '://' + self.baseUrlDomain + url
+                
         return url
 
     
@@ -230,7 +238,7 @@ class checkLinks():
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            #if self.totalUrlsChecked == 20: break
+            if self.totalUrlsChecked == 200: break
         
         
     def createReport(self):
