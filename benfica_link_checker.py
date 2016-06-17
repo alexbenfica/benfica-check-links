@@ -238,7 +238,7 @@ class checkLinks():
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            if self.totalUrlsChecked == 200: break
+            #if self.totalUrlsChecked == 200: break
         
         
     def createReport(self):
