@@ -11,6 +11,7 @@ import requests
 import markdown
 import tldextract
 import pprint as pp
+import re
 
 from urlparse import urlparse
 from bs4 import BeautifulSoup
@@ -30,17 +31,21 @@ class checkLinks():
     
     imageExtensions = ('.jpg','.bmp','.jpeg','.png', '.tiff', '.gif')
     
-    def __init__(self, baseUrl):
+    def __init__(self, baseUrl, ignoreListFile):
         print 'Starting checkLink class with base url: %s' % baseUrl        
         self.baseUrl = baseUrl
         self.baseUrlDomain = self.getUrlDomain(self.baseUrl)
         self.baseUrlProtocol = self.baseUrl.split(':')[0]
         print 'Domain is: %s' % self.baseUrlDomain        
+        self.loadIgnoreList(ignoreListFile)
         self.urls = {}        
         self.urlsToCheck = []
         self.addUrlToCheck(self.baseUrl, '')
         self.startSession()
         self.mime = MimeTypes()
+
+    def loadIgnoreList(self, ignoreListFile):        
+        self.urlsToIgnore = open(ignoreListFile,'r').readlines()        
         
     def getUrlDomain(self,url):                
         ext = tldextract.extract(url)        
@@ -86,15 +91,22 @@ class checkLinks():
     def setUrlStatus(self, url, status):
         self.urls[url]['status'] = status
     
+    def mustIgnore(self, url):
+        for ignorePattern in self.urlsToIgnore:
+            if ignorePattern in url:                
+                return True
+        return False
+    
     def sanitizeUrl(self, url, ref):                        
         if not url: return ''
         # Ignore internal references urls
         if url.startswith('#'): return ''
         # ignore mailto urls
-        if url.startswith('mailto:'): return ''
-        # ignore ?replytocom and #respond urls on WordPress ... ok... it should be in configuration file!
-        if '?replytocom' in url: return ''
+        if url.startswith('mailto:'): return ''       
+        
         if url.endswith('#respond'): return ''
+
+        if self.mustIgnore(url): return ''
 
         # Add url protocol when necessary        
         if url.startswith('//'): 
@@ -102,14 +114,16 @@ class checkLinks():
         else:        
             # Add url domain when necessary        
             if url.startswith('/'): 
-                url = self.baseUrlProtocol + '://' + self.baseUrlDomain + url
-                
+                url = self.baseUrlProtocol + '://' + self.baseUrlDomain + url                
         return url
 
     
-    def addUrlToCheck(self, url, ref):        
-        url = self.sanitizeUrl(url, ref)
-        if not url: return 0
+    def addUrlToCheck(self, urlToCheck, ref):   
+        
+        url = self.sanitizeUrl(urlToCheck, ref)
+        if not url: 
+            #print 'URL ignored: %s' % urlToCheck
+            return 0
 
         # if not on list or urls, add it!
         if not self.urls.get(url,{}): self.urls[url] = {'ref':[], 'status':0}   
@@ -176,7 +190,7 @@ class checkLinks():
                 r = self.session.head(url, timeout=timeout, headers=self.requestHeaders)                            
             else: 
                 r = self.session.get(url, timeout=timeout, headers=self.requestHeaders)
-            status = r.status_code
+            status = r.status_code                        
             
             # if the real content type is text and not binary, get the complete content!
             # only get again if urls exists!
@@ -238,7 +252,7 @@ class checkLinks():
         while self.urlsToCheck:            
             url = self.urlsToCheck[0]
             self.checkUrl(url)            
-            #if self.totalUrlsChecked == 200: break
+            #if self.totalUrlsChecked == 20: break
         
         
     def createReport(self):
@@ -326,7 +340,7 @@ tsv_txt = ''
 
 for url in urls:
     # Call checker for each url
-    cLink = checkLinks(url)                
+    cLink = checkLinks(url, args.ignoreListFile)
     cLink.start()    
     
     # Create reports in txt
