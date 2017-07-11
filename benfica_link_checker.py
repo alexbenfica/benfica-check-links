@@ -45,7 +45,7 @@ class checkLinks():
         self.mime = MimeTypes()
 
     def loadIgnoreList(self, ignoreListFile):        
-        self.urlsToIgnore = open(ignoreListFile,'r').readlines()        
+        self.urlsToIgnore = open(ignoreListFile,'r').read().splitlines()
         
     def getUrlDomain(self,url):                
         ext = tldextract.extract(url)        
