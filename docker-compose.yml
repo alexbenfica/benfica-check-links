@@ -1,0 +1,12 @@
+
+version: "3"
+
+services:
+  check_links:
+    build: .
+    container_name: check_links
+    volumes:
+      # map for development
+      - ~/Dropbox/Devel/Linux/check-links/app:/app
+
+

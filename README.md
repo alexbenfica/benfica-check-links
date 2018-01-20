@@ -11,6 +11,7 @@ Allows you to check for broken links in all internal pages of a website and more
 It is used for some specific tasks:
 - find broken urls on pages
 - as a desired side effect, load pages and forces caching creation
+- created to run in a daily basis reporting broken links of multi site network
 
 # How to use it?
 

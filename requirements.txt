@@ -1,0 +1,4 @@
+requests
+markdown
+bs4
+colorama
