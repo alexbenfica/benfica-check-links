@@ -14,11 +14,9 @@ stages:
 
 
 build:
+  stage: build
   before_script:
     - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
-  tags:
-    - docker
-  stage: build
   script:
     - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
 
