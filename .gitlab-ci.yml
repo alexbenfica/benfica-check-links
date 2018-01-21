@@ -1,2 +1,28 @@
-job1:
-  script: "pwd"
+# Continuous integration:
+# Clone the repository to temporary folder
+# Build the container
+# Run lint check
+# Run tests
+# Deploy (commit to github)
+
+stages:
+  - build
+#  - lint
+#  - test
+#  - deploy
+#  - cleanup
+
+
+build:
+  before_script:
+    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
+  tags:
+    - docker
+  stage: build
+  script:
+    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
+
+
+
+
+
