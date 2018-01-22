@@ -7,15 +7,14 @@
 
 stages:
   - build
-  - lint
+#  - lint
 #  - test
 #  - deploy
 #  - cleanup
 
 
-variables:
-  #IMAGE_NAME: registry.gitlab.com/mfalzetta/ocbweb
-  DOCKER_DRIVER: overlay
+#variables:
+#  DOCKER_DRIVER: overlay
 
 
 build:
@@ -28,21 +27,22 @@ build:
   before_script:
     - docker info
   script:
-    - docker build -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
-    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF pwd
-    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF ls -las
+    - docker login registry.gitlab.com
+#    - docker build -t my-docker-image .
+#    - docker run my-docker-image pwd
+#    - docker run my-docker-image ls -las
 
-lint:
-  stage: lint
-  image: docker:latest
-  services:
-    - docker:dind
-  tags:
-    - docker
-  before_script:
-    - docker info
-  script:
-    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF uptime
+#lint:
+#  stage: lint
+#  image: docker:latest
+#  services:
+#    - docker:dind
+#  tags:
+#    - docker
+#  before_script:
+#    - docker info
+#  script:
+#    - docker run my-docker-image uptime
 
 
 
