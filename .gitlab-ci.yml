@@ -5,10 +5,10 @@
 # Run tests
 # Deploy (commit to github)
 
-
-image: docker:latest
-services:
-  - docker:dind
+#
+#image: docker:latest
+#services:
+#  - docker:dind
 
 stages:
   - build
@@ -27,6 +27,7 @@ build:
   script:
     - docker build -t my-docker-image .
     - docker run my-docker-image pwd
+    - docker run my-docker-image ls -las
 
 
 #  before_script:
@@ -36,4 +37,12 @@ build:
 #
 
 
+# How to register the docker runner
+#sudo gitlab-runner register -n \
+#  --url GITLAB_URL \
+#  --registration-token REGISTRATION_TOKEN \
+#  --executor docker \
+#  --description "Docker Runner" \
+#  --docker-image "docker:latest" \
+#  --docker-privileged
 
