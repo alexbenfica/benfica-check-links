@@ -34,6 +34,7 @@ build:
 
 lint:
   stage: lint
+  image: docker:latest
   services:
     - docker:dind
   tags:
