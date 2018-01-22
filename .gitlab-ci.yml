@@ -6,13 +6,9 @@
 # Deploy (commit to github)
 
 
-image: docker:latest
+#image: docker:latest
 services:
   - docker:dind
-
-
-variables:
-  DOCKER_DRIVER: overlay
 
 
 stages:
