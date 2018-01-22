@@ -32,11 +32,8 @@ build:
     - docker run my-docker-image pwd
     - docker run my-docker-image ls -las
 
-
-
 lint:
   stage: lint
-  image: my-docker-image
   services:
     - docker:dind
   tags:
