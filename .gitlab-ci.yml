@@ -27,9 +27,8 @@ build:
     - docker info
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t $MY_IMAGE_NAME .
-    - docker run $MY_IMAGE_NAME pwd
-    - docker pull $MY_IMAGE_NAME
+    - docker build -t registry.gitlab.com/alexbenfica/check-links .
+    - docker push registry.gitlab.com/alexbenfica/check-links
 
 
 #lint:
