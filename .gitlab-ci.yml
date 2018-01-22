@@ -13,9 +13,8 @@ stages:
 #  - cleanup
 
 
-#variables:
-#  DOCKER_DRIVER: overlay
-
+variables:
+  MY_IMAGE_NAME: "my_image"
 
 build:
   stage: build
@@ -28,9 +27,10 @@ build:
     - docker info
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-#    - docker build -t my-docker-image .
-#    - docker run my-docker-image pwd
-#    - docker run my-docker-image ls -las
+    - docker build -t $MY_IMAGE_NAME .
+    - docker run $MY_IMAGE_NAME pwd
+    - docker pull $MY_IMAGE_NAME
+
 
 #lint:
 #  stage: lint
