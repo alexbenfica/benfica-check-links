@@ -34,7 +34,7 @@ build:
 
 
 
-build:
+lint:
   stage: lint
   image: my-docker-image
   services:
