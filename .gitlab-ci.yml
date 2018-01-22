@@ -5,10 +5,6 @@
 # Run tests
 # Deploy (commit to github)
 
-
-image: docker:latest
-
-
 stages:
   - build
 #  - lint
@@ -16,8 +12,15 @@ stages:
 #  - deploy
 #  - cleanup
 
+
+variables:
+  #IMAGE_NAME: registry.gitlab.com/mfalzetta/ocbweb
+  DOCKER_DRIVER: overlay
+
+
 build:
   stage: build
+  image: docker:latest
   services:
     - docker:dind
   tags:
