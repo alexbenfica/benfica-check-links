@@ -27,7 +27,7 @@ build:
   before_script:
     - docker info
   script:
-    - docker login registry.gitlab.com
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
 #    - docker build -t my-docker-image .
 #    - docker run my-docker-image pwd
 #    - docker run my-docker-image ls -las
