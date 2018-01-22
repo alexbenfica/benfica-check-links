@@ -18,11 +18,19 @@ build:
   tags:
     - docker
   before_script:
-    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
-  script:
-    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
+    - docker info
+
+  build_image:
+    script:
+      - docker build -t my-docker-image .
+      - docker run my-docker-image pwd
 
 
+#  before_script:
+#    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
+#  script:
+#    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
+#
 
 
 
