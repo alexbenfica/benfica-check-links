@@ -7,7 +7,7 @@
 
 stages:
   - build
-#  - lint
+  - lint
 #  - test
 #  - deploy
 #  - cleanup
@@ -31,6 +31,21 @@ build:
     - docker build -t my-docker-image .
     - docker run my-docker-image pwd
     - docker run my-docker-image ls -las
+
+
+
+build:
+  stage: lint
+  image: my-docker-image
+  services:
+    - docker:dind
+  tags:
+    - docker
+  before_script:
+    - docker info
+  script:
+    - docker run my-docker-image uptime
+
 
 
 #  before_script:
