@@ -1,16 +1,3 @@
-
-
-mage: docker:latest
-
-services:
-  - docker:dind
-
-build:
-  stage: build
-  script:
-    - docker build -t test .
-
-
 # Continuous integration:
 # Clone the repository to temporary folder
 # Build the container
@@ -18,35 +5,35 @@ build:
 # Run tests
 # Deploy (commit to github)
 
-#
-#image: docker:latest
-#services:
-#  - docker:dind
-#
-#stages:
-#  - build
-##  - lint
-##  - test
-##  - deploy
-##  - cleanup
-#
-#
-#build:
-#  stage: build
-#  tags:
-#    - docker
+
+image: docker:latest
+services:
+  - docker:dind
+
+stages:
+  - build
+#  - lint
+#  - test
+#  - deploy
+#  - cleanup
+
+
+build:
+  stage: build
+  tags:
+    - docker
+  before_script:
+    - docker info
+  script:
+    - docker build -t my-docker-image .
+    - docker run my-docker-image pwd
+
+
 #  before_script:
-#    - docker info
+#    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
 #  script:
-#    - docker build -t my-docker-image .
-#    - docker run my-docker-image pwd
+#    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
 #
-#
-##  before_script:
-##    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
-##  script:
-##    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
-##
-#
-#
-#
+
+
+
