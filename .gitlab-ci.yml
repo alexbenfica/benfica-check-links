@@ -5,6 +5,11 @@
 # Run tests
 # Deploy (commit to github)
 
+
+image: docker:latest
+services:
+  - docker:dind
+
 stages:
   - build
 #  - lint
