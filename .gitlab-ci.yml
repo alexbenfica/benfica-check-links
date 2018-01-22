@@ -28,9 +28,9 @@ build:
   before_script:
     - docker info
   script:
-    - docker build -t my-docker-image .
-    - docker run my-docker-image pwd
-    - docker run my-docker-image ls -las
+    - docker build -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
+    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF pwd
+    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF ls -las
 
 lint:
   stage: lint
@@ -42,7 +42,7 @@ lint:
   before_script:
     - docker info
   script:
-    - docker run my-docker-image uptime
+    - docker run ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF uptime
 
 
 
