@@ -208,7 +208,7 @@ class CheckLink():
         new_urls_count = 0
         urls = self.get_urls_from_html(html)
 
-        sanitized_urls = [Url().sanitize(url, referrer) for url in urls]
+        sanitized_urls = [Url().sanitize(url) for url in urls]
         clean_urls = [url for url in sanitized_urls if url]
 
         # reorder list to get more sessions reused
@@ -302,7 +302,7 @@ class CheckLink():
 
 if __name__ == "__main__":
     import argparse
-    import pprint
+    #import pprint
 
     logging.basicConfig(level=logging.INFO)
 

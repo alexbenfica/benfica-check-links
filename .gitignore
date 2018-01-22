@@ -1,2 +1,10 @@
-*.pyc
+
 .idea/
+.pyc
+
+web/my_app/credentials
+
+__pycache__/
+.cache/
+cli/tests/.cache/**
+*pytestdebug*

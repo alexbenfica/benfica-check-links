@@ -2,3 +2,8 @@ requests
 markdown
 bs4
 colorama
+
+# testing
+pylint
+pytest
+pytest-cov

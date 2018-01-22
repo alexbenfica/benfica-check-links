@@ -1,20 +1,13 @@
-# Continuous integration:
-# Clone the repository to temporary folder
-# Build the container
-# Run lint check
-# Run tests
-# Deploy (commit to github)
+# Continuous integration \ deployment
 
 stages:
   - build
-#  - lint
-#  - test
-#  - deploy
-#  - cleanup
-
+  - test
+  - deploy
 
 variables:
-  MY_IMAGE_NAME: "my_image"
+  IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
+
 
 build:
   stage: build
@@ -23,41 +16,35 @@ build:
     - docker:dind
   tags:
     - docker
-  before_script:
-    - docker info
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t registry.gitlab.com/alexbenfica/check-links .
-    - docker push registry.gitlab.com/alexbenfica/check-links
+    - docker build -t $IMAGE_NAME .
+    - docker push $IMAGE_NAME
 
 
-#lint:
-#  stage: lint
-#  image: docker:latest
-#  services:
-#    - docker:dind
-#  tags:
-#    - docker
-#  before_script:
-#    - docker info
-#  script:
-#    - docker run my-docker-image uptime
+test:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - docker
+  script:
+    - docker run $IMAGE_NAME pytest /tests
+
+
+deploy:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - docker
+  script:
+    # merge into master
+    - ls
 
 
 
-#  before_script:
-#    - docker build -f Dockerfile -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF .
-#  script:
-#    - docker run -t ci-project-build-$CI_PROJECT_ID:$CI_BUILD_REF
-#
 
-
-# How to register the docker runner
-#sudo gitlab-runner register -n \
-#  --url GITLAB_URL \
-#  --registration-token REGISTRATION_TOKEN \
-#  --executor docker \
-#  --description "Docker Runner" \
-#  --docker-image "docker:latest" \
-#  --docker-privileged
 

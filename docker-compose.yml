@@ -8,5 +8,6 @@ services:
     volumes:
       # map for development
       - ~/Dropbox/Devel/Linux/check-links/app:/app
+      - ~/Dropbox/Devel/Linux/check-links/tests:/tests
 
 

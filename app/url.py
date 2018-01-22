@@ -21,7 +21,7 @@ class Url():
         cls.base_url_protocol = base_url.split(':')[0]
         cls.base_url_domain = cls.domain(base_url)
 
-    def sanitize(self, url, referrer):
+    def sanitize(self, url):
         if not url:
             return ''
         # Ignore internal references urls
