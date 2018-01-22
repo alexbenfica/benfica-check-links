@@ -6,9 +6,7 @@
 # Deploy (commit to github)
 
 
-image: python:3
-services:
-  - docker:dind
+image: docker:latest
 
 
 stages:
@@ -21,6 +19,8 @@ stages:
 
 build:
   stage: build
+  services:
+    - docker:dind
   tags:
     - docker
   before_script:
