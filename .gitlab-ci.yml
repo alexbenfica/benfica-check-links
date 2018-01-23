@@ -5,11 +5,13 @@ stages:
   - test
   - deploy
 
+
 variables:
-  IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
+  TEST_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links:test"
+  PROD_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
 
 
-build_container:
+build_test_container:
   stage: build
   image: docker:latest
   services:
@@ -18,11 +20,10 @@ build_container:
     - docker
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t $IMAGE_NAME .
-    - docker push $IMAGE_NAME
+    - docker build -t $TEST_IMAGE_NAME .
+    - docker push $TEST_IMAGE_NAME
 
 
-# make a change in the feature branch and committed to repository...
 
 run_tests:
   stage: test
@@ -32,23 +33,25 @@ run_tests:
   tags:
     - docker
   script:
-    - docker run $IMAGE_NAME pytest /tests
+    - docker run $TEST_IMAGE_NAME pytest /tests
+    - docker run $TEST_IMAGE_NAME pylint /app/*.py
 
 
-deploy:
+
+create_final_container:
   stage: deploy
   image: docker:latest
   services:
     - docker:dind
   tags:
     - docker
-  script:
-    # merge into master
-    - ls
-    # clone to github
-
   only:
     - master
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+    - docker build -t $PROD_IMAGE_NAME .
+    - docker push $PROD_IMAGE_NAME
+
 
 
 
