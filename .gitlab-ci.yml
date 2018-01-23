@@ -9,7 +9,7 @@ variables:
   IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
 
 
-build:
+build_container:
   stage: build
   image: docker:latest
   services:
@@ -22,7 +22,7 @@ build:
     - docker push $IMAGE_NAME
 
 
-test:
+run_tests:
   stage: test
   image: docker:latest
   services:
@@ -43,6 +43,8 @@ deploy:
   script:
     # merge into master
     - ls
+  only:
+    - master
 
 
 
