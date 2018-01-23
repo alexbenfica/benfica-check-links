@@ -7,3 +7,7 @@ __pycache__/
 .cache/
 cli/tests/.cache/**
 *pytestdebug*
+
+build
+dist
+*.egg-info/

@@ -1,9 +1,13 @@
+# These requirements used by Dockerfile.
+# Requirements for pip3 install must be added to setup.py
+
 requests
 markdown
 bs4
 colorama
 
-# testing
-pylint
+
+# Specific requirements for testing only.
 pytest
+pylint
 pytest-cov

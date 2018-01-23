@@ -37,8 +37,24 @@ run_tests:
     #- docker run $TEST_IMAGE_NAME pylint --max-line-length=120 /app/*.py
 
 
+#
+#create_final_container:
+#  stage: deploy
+#  image: docker:latest
+#  services:
+#    - docker:dind
+#  tags:
+#    - docker
+#  only:
+#    - master
+#  script:
+#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+#    - docker build -t $PROD_IMAGE_NAME .
+#    - docker push $PROD_IMAGE_NAME
+#
+#
 
-create_final_container:
+publish_to_pypi:
   stage: deploy
   image: docker:latest
   services:
@@ -48,6 +64,6 @@ create_final_container:
   only:
     - master
   script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t $PROD_IMAGE_NAME .
-    - docker push $PROD_IMAGE_NAME
+    - pip3 install twine
+    - python setup.py sdist bdist_wheel
+    - twine upload -u alexbenfica -p $PYPI_PASSWORD dist/*

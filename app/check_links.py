@@ -9,7 +9,6 @@ import time
 import datetime
 import requests
 
-
 from colorama import Fore
 
 from url import Url
