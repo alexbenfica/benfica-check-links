@@ -56,11 +56,7 @@ variables:
 
 publish_to_pypi:
   stage: deploy
-  image: docker:latest
-  services:
-    - docker:dind
-  tags:
-    - docker
+  image: python:3
   only:
     - master
   script:
