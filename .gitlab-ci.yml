@@ -64,6 +64,10 @@ publish_to_pypi:
   only:
     - master
   script:
+    - apt-get update
+    - apt install -y python3-pip
+    - pip3 install -U wheel
+    - pip3 install -U setuptools
     - pip3 install twine
     - python setup.py sdist bdist_wheel
     - twine upload -u alexbenfica -p $PYPI_PASSWORD dist/*
