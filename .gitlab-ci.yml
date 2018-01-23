@@ -10,31 +10,31 @@ variables:
   TEST_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links:test"
   PROD_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
 
-
-build_test_container:
-  stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  tags:
-    - docker
-  script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-    - docker build -t $TEST_IMAGE_NAME .
-    - docker push $TEST_IMAGE_NAME
-
-
-
-run_tests:
-  stage: test
-  image: docker:latest
-  services:
-    - docker:dind
-  tags:
-    - docker
-  script:
-    - docker run $TEST_IMAGE_NAME pytest /tests
-    #- docker run $TEST_IMAGE_NAME pylint --max-line-length=120 /app/*.py
+#
+#build_test_container:
+#  stage: build
+#  image: docker:latest
+#  services:
+#    - docker:dind
+#  tags:
+#    - docker
+#  script:
+#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+#    - docker build -t $TEST_IMAGE_NAME .
+#    - docker push $TEST_IMAGE_NAME
+#
+#
+#
+#run_tests:
+#  stage: test
+#  image: docker:latest
+#  services:
+#    - docker:dind
+#  tags:
+#    - docker
+#  script:
+#    - docker run $TEST_IMAGE_NAME pytest /tests
+#    #- docker run $TEST_IMAGE_NAME pylint --max-line-length=120 /app/*.py
 
 
 #
