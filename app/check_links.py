@@ -1,23 +1,29 @@
 #!/usr/bin/python3
-# Alex Benfica <alexbenfica@gmail.com>
+"""
+Performs link checking following all internal links from a given base url.
+Does not follow external links, but checks if they are broken.
+Alex Benfica <alexbenfica@gmail.com>
+"""
 import logging
 import time
 import datetime
 import requests
 
-from bs4 import BeautifulSoup
+
 from colorama import Fore
 
 from url import Url
 
+# pylint: disable=C0111
 
 class CheckLink():
     """
     Recursive check for broken links of all internal pages of a website
     Do NOT follow external urls, but check them.
     """
-    def __init__(self, base_url, url=None):
+    def __init__(self, base_url, urls_to_ignore, request_timeout=15):
         self.base_url = base_url
+        self.request_timeout = request_timeout
         Url().load_ignore_list(urls_to_ignore)
         Url().set_base_url(base_url)
         self.urls = dict()
@@ -29,7 +35,7 @@ class CheckLink():
     def start_session(self):
         self.session = requests.Session()
         # Use some common user agent header to avoid beibg blocked
-        self.requestHeaders = {
+        self.request_headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) '
                           'AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/47.0.2526.106 Safari/537.36'}
@@ -37,13 +43,12 @@ class CheckLink():
 
     def start_checking(self):
         self.total_checked = 0
-        self.startTime = datetime.datetime.now()
-        self.t0 = time.time()
-        logging.info('Starting with url: {}'.format(self.base_url))
+        self.start_time = time.time()
+        logging.info('Starting with url: %s', self.base_url)
         while self.urls_to_check:
             # always get the first list element
             # the priority elements to be checked will be added the begining of the list
-            # @todo Adding the priority elements to the end might be more effective in time complexity
+            # @todo Adding priority elements to the end might be more effective in time complexity
             self.check_url(self.urls_to_check[0])
             # DEBUG
             # if self.total_checked == 50:
@@ -83,39 +88,17 @@ class CheckLink():
         return self.get_url_status(url) != 0
 
     def get_url_referrers(self, url):
-        return self.urls.get(url,dict()).get('referrers',list())
-        
+        return self.urls.get(url, dict()).get('referrers', list())
+
     def get_url_status(self, url):
-        return self.urls.get(url,dict()).get('status', 0)
-        
+        return self.urls.get(url, dict()).get('status', 0)
+
     def set_url_status(self, url, status):
         self.urls[url]['status'] = status
 
-
-    def get_urls_from_html(self, html):
-        """
-        Get all urls of links and images inside an HTML
-        :param html: html content of a page.
-        :return: set of links found in html
-        """
-        url_list = list()
-        soup = BeautifulSoup(html, "html.parser")
-
-        for item in soup.find_all(attrs={'href': ''}):
-            for link in item.find_all('a'):                
-                url_list.append(link.get('href'))
-                
-        for item in soup.find_all(attrs={'src': ''}):
-            for link in item.find_all('img'):                
-                url_list.append(link.get('src'))
-
-        # return without duplicates
-        return list(set(url_list))
-
-
     @classmethod
     def status_is_error(cls, status):
-        if not isinstance(status, int ):
+        if not isinstance(status, int):
             return True
         if status > 300:
             return True
@@ -138,36 +121,34 @@ class CheckLink():
         if Url().is_file(url):
             msg += '(FILE) '
 
-        logging.info("\n #%d  Checking url: %s %s" % (self.total_checked, msg, url))
+        logging.info("\n #%d  Checking url: %s %s", self.total_checked, msg, url)
+
         refs = self.get_url_referrers(url)
         if refs:
-             logging.info(Fore.WHITE + "    First linked from: %s " % refs[0])
+            logging.info(Fore.WHITE + "    First linked from: %s " % refs[0])
 
         t_request = time.time()
-        timeout = 15
 
         try:
             if head_only:
-                r = self.session.head(url, timeout=timeout, headers=self.requestHeaders)
+                req = self.session.head(url, timeout=self.request_timeout, headers=self.request_headers)
                 # if link is NOT really a file, download it
-                if not self.status_is_error(r.status_code):
+                if not self.status_is_error(req.status_code):
                     if Url().is_internal(url):
-                        mimeType = r.headers.get('content-type')
-                        if mimeType.startswith('text'):
-                            msg = ' (It is not a file, it is %s) ' % mimeType
-                            logging.info(" {}  Checking url: (HTTP GET)! {} {}".
-                                         format(self.total_checked, msg, url))
-                            r = self.session.get(url, timeout=timeout, headers=self.requestHeaders)
+                        mime_type = req.headers.get('content-type')
+                        if mime_type.startswith('text'):
+                            msg = ' (It is not a file, it is %s) ' % mime_type
+                            logging.info(" %d  Checking url: (HTTP GET)! %s %s", self.total_checked, msg, url)
+                            req = self.session.get(url, timeout=self.request_timeout, headers=self.request_headers)
 
-            else: 
-                r = self.session.get(url, timeout=timeout, headers=self.requestHeaders)
+            else:
+                req = self.session.get(url, timeout=self.request_timeout, headers=self.request_headers)
 
-            status = r.status_code
-            
+            status = req.status_code
 
-        except Exception as e:
-            status = e.__class__.__name__
-            
+        except Exception as exc:
+            status = exc.__class__.__name__
+
         self.set_url_status(url, status)
         self.urls_to_check.remove(url)
         t_request = time.time() - t_request
@@ -175,25 +156,30 @@ class CheckLink():
         # Add new urls to list
         new_urls_count = 0
         if not self.status_is_error(status):
-            new_urls_count = self.queue_new_urls(r.text, referrer=url)
+            new_urls_count = self.queue_new_urls(req.text, referrer=url)
 
         # All verbose info grouped here...
-        self.total_time = time.time() - self.t0
-        self.avg_time = self.total_time / self.total_checked
-        eta = int(self.avg_time * len(self.urls_to_check))
+        total_time = time.time() - self.start_time
+        avg_time = total_time / self.total_checked
+        eta = int(avg_time * len(self.urls_to_check))
 
-        msg = '         +{:.4f}s status {} | Avg:{:.4f}s | Total: {} in {} | +{} new | {} on queue | est. time left: {}'.format(
-            t_request,
-            status,
-            self.avg_time,
-            self.total_checked,
-            "{}".format(datetime.timedelta(seconds=int(self.total_time))),
-            new_urls_count,
-            len(self.urls_to_check),
-            "{}".format(datetime.timedelta(seconds=eta))
-        )
+        msg = '         '
+        msg += '+{:.4f}s status {} | Avg:{:.4f}s | Total: {} in {} | +{} new | {} on queue | est. time left: {}'.\
+            format(t_request,
+                   status,
+                   avg_time,
+                   self.total_checked,
+                   "{}".format(datetime.timedelta(seconds=int(total_time))),
+                   new_urls_count,
+                   len(self.urls_to_check),
+                   "{}".format(datetime.timedelta(seconds=eta))
+                  )
 
-        color = (Fore.GREEN, Fore.RED)[self.status_is_error(status)]
+        if self.status_is_error(status):
+            color = Fore.RED
+        else:
+            color = Fore.GREEN
+
         logging.info(color + msg + Fore.WHITE)
 
 
@@ -206,7 +192,7 @@ class CheckLink():
         """
         urls = list()
         new_urls_count = 0
-        urls = self.get_urls_from_html(html)
+        urls = Url().get_from_html(html)
 
         sanitized_urls = [Url().sanitize(url) for url in urls]
         clean_urls = [url for url in sanitized_urls if url]
@@ -246,10 +232,10 @@ class CheckLink():
     #     addTxt('## Base url: [%s](%s)' % (self.base_url, self.base_url))
     #     addTxt('### Some statistics:')
     #     addTxt('* Total urls checked: %d' % self.total_checked)
-    #     addTxt('* Start time: %s' % self.startTime.strftime('%d/%m/%Y %H:%M:%S'))
+    #     addTxt('* Start time: %s' % self.start_time.strftime('%d/%m/%Y %H:%M:%S'))
     #     addTxt('* End time: %s' % datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
     #     addTxt('* Total time spent: %s' % "{:0>8}".format(datetime.timedelta(seconds=int(self.total_time))))
-    #     addTxt('* Average check time per url: %.2f s' % self.avg_time)
+    #     addTxt('* Average check time per url: %.2f s' % avg_time)
     #
     #     nProblems = 0
     #     for url, value in self.urls.iteritems():
@@ -301,10 +287,11 @@ class CheckLink():
 
 
 if __name__ == "__main__":
-    import argparse
-    #import pprint
 
+    import argparse
     logging.basicConfig(level=logging.INFO)
+
+    # pylint: disable=C0103
 
     parser = argparse.ArgumentParser(
         description="Check for broken links in all pages of a website.",
@@ -315,15 +302,19 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--ignore_url_file", help="File with url patterns to ignore.", )
     args = parser.parse_args()
 
-    urls_to_ignore = list()
+    url_list_to_ignore = list()
     if args.ignore_url_file:
-        urls_to_ignore = open(args.ignore_url_file, 'r').read().splitlines()
+        url_list_to_ignore = open(args.ignore_url_file, 'r').read().splitlines()
 
     # call library
-
-    check_link = CheckLink(args.url, urls_to_ignore)
+    check_link = CheckLink(args.url, url_list_to_ignore)
     check_link.start_checking()
-    results = check_link.get_results()
+    check_link_results = check_link.get_results()
+
+
+    # pylint: enable=C0103
+
+
 
     #pprint.pprint(results)
 
