@@ -22,6 +22,8 @@ build_container:
     - docker push $IMAGE_NAME
 
 
+# make a change in the feature branch and committed to repository...
+
 run_tests:
   stage: test
   image: docker:latest
@@ -31,7 +33,6 @@ run_tests:
     - docker
   script:
     - docker run $IMAGE_NAME pytest /tests
-    - if this fail.. does merge will not happen?
 
 
 deploy:
