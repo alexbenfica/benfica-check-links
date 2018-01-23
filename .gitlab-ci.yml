@@ -51,9 +51,3 @@ create_final_container:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
     - docker build -t $PROD_IMAGE_NAME .
     - docker push $PROD_IMAGE_NAME
-
-
-
-
-
-
