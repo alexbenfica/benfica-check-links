@@ -1,5 +1,8 @@
 # check-links
 
+
+If you are seeing this on GitHub, it is a mirror from Gitlab: https://gitlab.com/alexbenfica/check-links/
+
 # What does it do?
 
 Allows you to check for broken links in all internal pages of a website and more:
