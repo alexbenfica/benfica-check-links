@@ -65,5 +65,6 @@ publish_to_pypi:
     - pip3 install -U wheel
     - pip3 install -U setuptools
     - pip3 install twine
+    - rm -rf build dist *.egg-info
     - python setup.py sdist bdist_wheel
     - twine upload -u alexbenfica -p $PYPI_PASSWORD dist/*
