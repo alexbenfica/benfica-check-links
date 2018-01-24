@@ -34,7 +34,7 @@ run_tests:
   script:
     - docker run $TEST_IMAGE_NAME pytest /tests
     #- docker run $TEST_IMAGE_NAME pylint --max-line-length=120 /app/*.py
-    - docker rmi $TEST_IMAGE_NAME
+    - docker rmi $TEST_IMAGE_NAME --force
 
 
 publish_to_pypi:
