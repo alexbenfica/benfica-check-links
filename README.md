@@ -1,14 +1,14 @@
 # check-links
 
 
-If you are seeing this on GitHub, it is a mirror from Gitlab: https://gitlab.com/alexbenfica/check-links/
+If you are seeing this on GitHub, you should know that this is a mirror from Gitlab: https://gitlab.com/alexbenfica/check-links/
+Issues and and milestones are all there!
 
 # What does it do?
 
 Allows you to check for broken links in all internal pages of a website and more:
 - export results to comma separated values (.csv)
-- export results to tab separated values (.tsv)
-- can be used as library
+- can also be imported as module
 
 It is used for some specific tasks:
 - find broken urls on pages

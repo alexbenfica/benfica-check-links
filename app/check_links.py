@@ -7,8 +7,9 @@ Alex Benfica <alexbenfica@gmail.com>
 import logging
 import time
 import datetime
-import requests
+import csv
 
+import requests
 from colorama import Fore
 
 from url import Url
@@ -46,6 +47,7 @@ class CheckLink():
         :param max_urls_to_check: the maximum number of urls to be checked. -1 means to check all.
         :return:
         """
+        logging.info('Maximum number of urls to check: {}'.format(max_urls_to_check))
         self.total_checked = 0
         self.start_time = time.time()
         logging.info('Starting with url: %s', self.base_url)
@@ -218,8 +220,11 @@ class CheckLink():
         return self.urls
 
 
-
-
+    def generate_report(self, output_file):
+        with open(output_file, 'w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            for url, info in self.urls.items():
+                csv_writer.writerow([url, info.get('status'), info.get('referrers')])
 
 
 if __name__ == "__main__":
@@ -236,6 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("--url", help="Base url to start checking for broken links. Include protocol  (https:// )")
     parser.add_argument("-o", "--output_file", help="Output file to save report to.", )
     parser.add_argument("-i", "--ignore_url_file", help="File with url patterns to ignore.", )
+    parser.add_argument("-m", "--max_urls_to_check", help="Maximum number of urls to check.", default=-1, type=int)
     args = parser.parse_args()
 
     url_list_to_ignore = list()
@@ -244,7 +250,8 @@ if __name__ == "__main__":
 
     # call library
     check_link = CheckLink(args.url, url_list_to_ignore)
-    check_link.start_checking()
+    check_link.start_checking(args.max_urls_to_check)
     check_link_results = check_link.get_results()
+    check_link.generate_report(args.output_file)
 
     # pylint: enable=C0103

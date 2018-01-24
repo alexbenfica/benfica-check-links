@@ -1,4 +1,6 @@
-# Easy way to apply DRY and have information on setup.py
+""""
+Easy way to apply DRY and have information on setup.py
+"""
 
 __title__ = 'checklinks'
 __description__ = 'Fetch, find and report broken links on all pages of a website.'
