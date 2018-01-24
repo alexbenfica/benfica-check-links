@@ -40,7 +40,12 @@ class CheckLink():
                           'Chrome/47.0.2526.106 Safari/537.36'}
 
 
-    def start_checking(self):
+    def start_checking(self, max_urls_to_check=-1):
+        """
+        Start checking urls from base_url
+        :param max_urls_to_check: the maximum number of urls to be checked. -1 means to check all.
+        :return:
+        """
         self.total_checked = 0
         self.start_time = time.time()
         logging.info('Starting with url: %s', self.base_url)
@@ -49,9 +54,9 @@ class CheckLink():
             # the priority elements to be checked will be added the begining of the list
             # @todo Adding priority elements to the end might be more effective in time complexity
             self.check_url(self.urls_to_check[0])
-            # DEBUG
-            # if self.total_checked == 50:
-            #     break
+
+            if self.total_checked == max_urls_to_check:
+                break
 
 
     def add_url_to_check(self, url, referrer=""):
@@ -214,74 +219,6 @@ class CheckLink():
 
 
 
-    # def createReport(self):
-    #     def addTxt(txt=''):
-    #         self.markdown_txt += txt + "\r\n"
-    #
-    #     def addCSV(txt=''):
-    #         self.csv_txt += txt + "\r\n"
-    #
-    #     def addTSV(txt=''):
-    #         self.tsv_txt += txt + "\r\n"
-    #
-    #     self.markdown_txt  = ''
-    #     self.csv_txt  = ''
-    #     self.tsv_txt  = ''
-    #
-    #     addTxt('## Base url: [%s](%s)' % (self.base_url, self.base_url))
-    #     addTxt('### Some statistics:')
-    #     addTxt('* Total urls checked: %d' % self.total_checked)
-    #     addTxt('* Start time: %s' % self.start_time.strftime('%d/%m/%Y %H:%M:%S'))
-    #     addTxt('* End time: %s' % datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'))
-    #     addTxt('* Total time spent: %s' % "{:0>8}".format(datetime.timedelta(seconds=int(self.total_time))))
-    #     addTxt('* Average check time per url: %.2f s' % avg_time)
-    #
-    #     nProblems = 0
-    #     for url, value in self.urls.iteritems():
-    #         status = self.urls[url].get('status')
-    #         if checkLinks.status_is_error(status):
-    #             nProblems += 1
-    #             addTxt("#### %s | [%s](%s)" % (status, url,url))
-    #             addTxt()
-    #             # get referers
-    #             referrers = self.get_url_referrers(url)
-    #             for ref in referrers:
-    #                 addTxt("> * Fix here: [%s](%s)" % (ref,ref))
-    #                 addCSV("%s,%s,%s,%s" % (self.baseUrlDomain,status,url,ref))
-    #                 addTSV("%s\t%s\t%s\t%s" % (self.baseUrlDomain,status,url,ref))
-    #
-    #     addTxt('#### Total urls with problems: %d' % nProblems)
-    #     return self.markdown_txt, self.csv_txt, self.tsv_txt
-
-
-
-
-
-
-    # @staticmethod
-    # def saveReport(txt, outputReportDir, outPutFile):
-    #     # Deal with files and directory names
-    #     outputReportDir = os.path.abspath(outputReportDir)
-    #     outputFile = os.path.join(outputReportDir, outPutFile)
-    #     if not os.path.isdir(outputReportDir):
-    #         os.makedirs(outputReportDir)
-    #
-    #     if 'html' in outPutFile:
-    #         resourceDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources')
-    #         htmlTemplateFile = os.path.join(resourceDir, 'report-template.html')
-    #         cssTemplateFile = os.path.join(resourceDir, 'markdown.css')
-    #         cssOutPutFile = os.path.join(outputReportDir, 'markdown.css')
-    #
-    #         html = codecs.open(htmlTemplateFile,encoding='utf-8').read()
-    #         html = html.replace('HTML_HERE',markdown.markdown(txt))
-    #
-    #         css = codecs.open(cssTemplateFile,encoding='utf-8').read()
-    #         codecs.open(cssOutPutFile,'w+',encoding='utf-8').write(css)
-    #         txt = html
-    #
-    #     codecs.open(outputFile,'w+',encoding='utf-8').write(txt)
-    #
-
 
 
 
@@ -310,16 +247,4 @@ if __name__ == "__main__":
     check_link.start_checking()
     check_link_results = check_link.get_results()
 
-
     # pylint: enable=C0103
-
-
-
-    #pprint.pprint(results)
-
-
-    #
-    # # aggregate reports on HTML and CSV calling stactic method
-    # checkLinks.saveReport(markdown_txt, outputDir, 'benfica-link-checker-report.html')
-    # checkLinks.saveReport(csv_txt, outputDir, 'benfica-link-checker-report.csv')
-    # checkLinks.saveReport(tsv_txt, outputDir, 'benfica-link-checker-report.tsv')
