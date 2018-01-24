@@ -8,9 +8,8 @@ stages:
 
 variables:
   TEST_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links:test"
-  PROD_IMAGE_NAME: "registry.gitlab.com/alexbenfica/check-links"
 
-#
+
 #build_test_container:
 #  stage: build
 #  image: docker:latest
@@ -23,8 +22,6 @@ variables:
 #    - docker build -t $TEST_IMAGE_NAME .
 #    - docker push $TEST_IMAGE_NAME
 #
-#
-#
 #run_tests:
 #  stage: test
 #  image: docker:latest
@@ -35,30 +32,16 @@ variables:
 #  script:
 #    - docker run $TEST_IMAGE_NAME pytest /tests
 #    #- docker run $TEST_IMAGE_NAME pylint --max-line-length=120 /app/*.py
+#    - docker rmi $TEST_IMAGE_NAME
 
-
-#
-#create_final_container:
-#  stage: deploy
-#  image: docker:latest
-#  services:
-#    - docker:dind
-#  tags:
-#    - docker
-#  only:
-#    - master
-#  script:
-#    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
-#    - docker build -t $PROD_IMAGE_NAME .
-#    - docker push $PROD_IMAGE_NAME
-#
-#
 
 publish_to_pypi:
   stage: deploy
   image: python:3
   only:
     - master
+  tags:
+    - release
   script:
     - apt update
     - apt install -y python3-pip
