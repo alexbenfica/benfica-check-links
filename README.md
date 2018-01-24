@@ -6,10 +6,9 @@ If you are seeing this on GitHub, it is a mirror from Gitlab: https://gitlab.com
 # What does it do?
 
 Allows you to check for broken links in all internal pages of a website and more:
-- export results to HTML
-- export results to comma separated values
-- export results to tab separated values
-- can be used as library and return values
+- export results to comma separated values (.csv)
+- export results to tab separated values (.tsv)
+- can be used as library
 
 It is used for some specific tasks:
 - find broken urls on pages
