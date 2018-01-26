@@ -12,7 +12,10 @@ import csv
 import requests
 from colorama import Fore
 
-from .url import Url
+if __name__ != "__main__":
+    from .url import Url
+else:
+    from url import Url
 
 # pylint: disable=C0111
 
@@ -24,8 +27,8 @@ class CheckLink():
     def __init__(self, base_url, urls_to_ignore, request_timeout=15):
         self.base_url = base_url
         self.request_timeout = request_timeout
-        Url().load_ignore_list(urls_to_ignore)
-        Url().set_base_url(base_url)
+        Url.load_ignore_list(urls_to_ignore)
+        Url.set_base_url(base_url)
         self.urls = dict()
         self.urls_to_check = list()
         self.add_url_to_check(self.base_url, '')
@@ -53,7 +56,7 @@ class CheckLink():
         logging.info('Starting with url: %s', self.base_url)
         while self.urls_to_check:
             # always get the first list element
-            # the priority elements to be checked will be added the begining of the list
+            # the priority elements to be checked will be added the beginning of the list
             # @todo Adding priority elements to the end might be more effective in time complexity
             self.check_url(self.urls_to_check[0])
 
@@ -62,45 +65,33 @@ class CheckLink():
 
 
     def add_url_to_check(self, url, referrer=""):
-
+        # if url not on url list, add it!
         if not self.urls.get(url):
-            # if url not on url list, add it!
-            self.urls[url] = {'referrers': list(), 'status': 0}
+            self.urls[url] = Url(url, referrer)
 
-        # add the referrer
-        # it is important to keep track of all places when the url is referenced
-        self.urls[url]['referrers'] = list(set(self.urls[url]['referrers'] + [referrer]))
+        # add the referrer: it is important to keep track of all places when the url is referenced
+        self.urls[url].add_referrer(referrer)
 
         # if already on the list of urls_to_check, do not add again
         if url in self.urls_to_check:
             return False
-        if self.is_url_checked(url):
-            return False
-
-        # if links are from internal, i.e.: the same domain, then
-        # ... add first to ensure max reuse of http connections
-        if Url().is_internal(url):
-            # add to beginning when it from the same domain
-            # @todo check if O(n) time complexity will be an issue here (list insert)
-            self.urls_to_check.insert(0, url)
         else:
-            # add to the list beginning
-            self.urls_to_check.append(url)
+            u = self.urls[url]
+            if u.checked():
+                return False
 
-        return True
+            # if links are from internal, i.e.: the same domain, then
+            # ... add first to ensure max reuse of http connections
+            if u.internal:
+                # add to beginning when it from the same domain
+                # @todo check if O(n) time complexity will be an issue here (list insert)
+                self.urls_to_check.insert(0, url)
+            else:
+                # add to the list beginning
+                self.urls_to_check.append(url)
 
+            return True
 
-    def is_url_checked(self, url):
-        return self.get_url_status(url) != 0
-
-    def get_url_referrers(self, url):
-        return self.urls.get(url, dict()).get('referrers', list())
-
-    def get_url_status(self, url):
-        return self.urls.get(url, dict()).get('status', 0)
-
-    def set_url_status(self, url, status):
-        self.urls[url]['status'] = status
 
     @classmethod
     def status_is_error(cls, status):
@@ -113,34 +104,32 @@ class CheckLink():
 
     def check_url(self, url):
         self.total_checked += 1
-        # get only head when the content is not important! (images and external)
-        head_only = not Url().is_internal(url) or Url().is_file(url)
+        u = self.urls[url]
 
-        msg = ''
-        if head_only:
-            msg += Fore.YELLOW + '(HTTP HEAD) ' + Fore.WHITE
+        if u.head_only:
+            msg = Fore.YELLOW + '(HTTP HEAD) ' + Fore.WHITE
         else:
-            msg += '(HTTP GET) '
+            msg = '(HTTP GET) '
 
-        if not Url().is_internal(url):
+        if not u.internal:
             msg += ' (EXTERNAL) '
-        if Url().is_file(url):
+
+        if u.binary:
             msg += '(FILE) '
 
         logging.info("\n #%d  Checking url: %s %s", self.total_checked, msg, url)
 
-        refs = self.get_url_referrers(url)
-        if refs:
-            logging.info(Fore.WHITE + "    First linked from: %s " % refs[0])
+        if u.referrers:
+            logging.info(Fore.WHITE + "    First linked from: %s " % u.referrers[0])
 
         t_request = time.time()
 
         try:
-            if head_only:
+            if u.head_only:
                 req = self.session.head(url, timeout=self.request_timeout, headers=self.request_headers)
                 # if link is NOT really a file, download it
                 if not self.status_is_error(req.status_code):
-                    if Url().is_internal(url):
+                    if u.internal:
                         mime_type = req.headers.get('content-type')
                         if mime_type.startswith('text'):
                             msg = ' (It is not a file, it is %s) ' % mime_type
@@ -155,8 +144,12 @@ class CheckLink():
         except Exception as exc:
             status = exc.__class__.__name__
 
-        self.set_url_status(url, status)
+        # save the url status
+        self.urls[url].status = status
+        self.urls[url].content_size = len(req.text)
+
         self.urls_to_check.remove(url)
+
         t_request = time.time() - t_request
 
         # Add new urls to list
@@ -198,9 +191,9 @@ class CheckLink():
         """
         urls = list()
         new_urls_count = 0
-        urls = Url().get_from_html(html)
+        urls = Url.get_from_html(html)
 
-        sanitized_urls = [Url().sanitize(url) for url in urls]
+        sanitized_urls = [Url.sanitize(url) for url in urls]
         clean_urls = [url for url in sanitized_urls if url]
 
         # reorder list to get more sessions reused
@@ -214,17 +207,20 @@ class CheckLink():
 
     def get_results(self):
         """
-        Return the results of check link process.
+        Return the results of check link process as a dictionary
         :return:
         """
-        return self.urls
+        results = {}
+        for url, info in self.urls.items():
+            results[url] = info.__dict__
+        return results
 
 
     def generate_report(self, output_file):
         with open(output_file, 'w', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for url, info in self.urls.items():
-                csv_writer.writerow([url, info.get('status'), info.get('referrers')])
+                csv_writer.writerow([url, info.status, info.referrers])
 
 
 if __name__ == "__main__":
@@ -252,6 +248,12 @@ if __name__ == "__main__":
     check_link = CheckLink(args.url, url_list_to_ignore)
     check_link.start_checking(args.max_urls_to_check)
     check_link_results = check_link.get_results()
+
+    # logging.debug(check_link_results)
+    # for url, info in check_link_results.items():
+    #     if info.get('content_size') > 0:
+    #         logging.debug(info)
+
     check_link.generate_report(args.output_file)
 
     # pylint: enable=C0103

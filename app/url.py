@@ -6,6 +6,8 @@ from mimetypes import MimeTypes
 from bs4 import BeautifulSoup
 
 
+STATUS_NOT_CHECKED = 0
+
 class Url():
     """
     Urls specific methods related to check links script.
@@ -16,8 +18,30 @@ class Url():
     allowed_image_extensions = ('.jpg', '.bmp', '.jpeg', '.png', '.tiff', '.gif')
     mime = MimeTypes()
 
-    def __init__(self):
-        pass
+    def __init__(self, url, referrer):
+        self.url = url
+        self.internal = self.is_internal(url)
+        self.referrers = [referrer,]
+        self.status = STATUS_NOT_CHECKED
+        self.binary = self.is_file(url)
+        # get only head when the content is not important! (images and external)
+        self.head_only = not self.internal or self.binary
+        self.content_size = -1
+
+
+    def add_referrer(self, referrer):
+        self.referrers = list(set(self.referrers + [referrer]))
+
+    def checked(self):
+        return self.status != 0
+
+    def __repr__(self):
+        return "{}({},{}) internal:{} status:{} binary:{}".format(__class__.__name__,
+                                                        self.url,
+                                                        self.referrers,
+                                                        self.internal,
+                                                        self.status,
+                                                        self.binary)
 
     @classmethod
     def load_ignore_list(cls, regex_urls_to_ignore):
@@ -31,7 +55,8 @@ class Url():
         cls.base_url_protocol = base_url.split(':')[0]
         cls.base_url_domain = cls.domain(base_url)
 
-    def sanitize(self, url):
+    @classmethod
+    def sanitize(cls, url):
         """Clean and validate urls that should be verified as broken links."""
         if not url:
             return ''
@@ -45,15 +70,15 @@ class Url():
         if url.endswith('#respond'):
             return ''
         # ignore urls from this ignore list
-        if self.must_ignore(url):
+        if cls.must_ignore(url):
             return ''
         # this is an internal URL... so add base_url_protocol (protocol relative urls)
         if url.startswith('//'):
-            url = self.base_url_protocol + ':' + url
+            url = cls.base_url_protocol + ':' + url
         else:
             # Add url domain when necessary (relative urls)
             if url.startswith('/'):
-                url = self.base_url_protocol + '://' + self.base_url_domain + url
+                url = cls.base_url_protocol + '://' + cls.base_url_domain + url
         url = url.strip()
         return url
 
@@ -85,9 +110,10 @@ class Url():
         return False
 
 
-    def must_ignore(self, url):
+    @classmethod
+    def must_ignore(cls, url):
         """Check if url must be ignored by check links based on ignore list."""
-        for ignore_pattern in self.regex_urls_to_ignore:
+        for ignore_pattern in cls.regex_urls_to_ignore:
             if ignore_pattern in url:
                 return True
         return False
