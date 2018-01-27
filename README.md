@@ -17,7 +17,13 @@ It is used for some specific tasks:
 
 # How to use it?
 
+You can download an run via command line:
 ```python3 check_links.py --help```
+
+OR
+
+You can install via pip3:
+```pip3 install -U checklinks```
 
 It is simple and really fast as it reuses http socket connections!
 
