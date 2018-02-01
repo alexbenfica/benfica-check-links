@@ -146,7 +146,6 @@ class CheckLink():
 
         # save the url status
         self.urls[url].status = status
-        self.urls[url].content_size = len(req.text)
 
         self.urls_to_check.remove(url)
 
@@ -155,6 +154,7 @@ class CheckLink():
         # Add new urls to list
         new_urls_count = 0
         if not self.status_is_error(status):
+            self.urls[url].content_size = len(req.text)
             new_urls_count = self.queue_new_urls(req.text, referrer=url)
 
         # All verbose info grouped here...
