@@ -12,6 +12,7 @@ import csv
 import requests
 from colorama import Fore
 
+
 if __name__ != "__main__":
     from .url import Url
 else:
@@ -226,6 +227,8 @@ class CheckLink():
 if __name__ == "__main__":
 
     import argparse
+    from __version__ import __version__
+
     logging.basicConfig(level=logging.INFO)
 
     # pylint: disable=C0103
@@ -238,6 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output_file", help="Output file to save report to.", )
     parser.add_argument("-i", "--ignore_url_file", help="File with url patterns to ignore.", )
     parser.add_argument("-m", "--max_urls_to_check", help="Maximum number of urls to check.", default=-1, type=int)
+    parser.add_argument('--version', action='version', version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     url_list_to_ignore = list()
