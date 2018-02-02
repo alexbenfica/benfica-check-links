@@ -49,6 +49,5 @@ publish_to_pypi:
     - pip3 install -U setuptools
     - pip3 install twine
     - rm -rf build dist *.egg-info
-    - echo $CI_PIPELINE_ID > build.txt
     - python setup.py sdist bdist_wheel
     - twine upload -u alexbenfica -p $PYPI_PASSWORD dist/*

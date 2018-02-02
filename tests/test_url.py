@@ -1,10 +1,9 @@
 import sys
-sys.path.append("/app")
+sys.path.append("/checklinks")
+
 
 from unittest import TestCase
-
 from url import Url
-
 
 class TestUrl(TestCase):
 

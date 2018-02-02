@@ -1,10 +1,10 @@
 version: "3"
 
 services:
-  check_links:
+  checklinks:
     build: .
-    container_name: check_links
+    container_name: checklinks
     volumes:
       # map for development
-      - ~/Dropbox/Devel/Linux/check-links/app:/app
-      - ~/Dropbox/Devel/Linux/check-links/tests:/tests
+      - ~/Dropbox/Devel/Linux/checklinks/checklinks:/checklinks
+      - ~/Dropbox/Devel/Linux/checklinks/tests:/tests

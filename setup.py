@@ -24,7 +24,7 @@ setup(name=about['__title__'],
       long_description=readme,
       keywords="broken links check checker invalid urls url",
       packages=['checklinks'],
-      package_dir={'checklinks': 'app'},
+      package_dir={'checklinks': 'checklinks'},
       install_requires=[
             'requests',
             'markdown',
