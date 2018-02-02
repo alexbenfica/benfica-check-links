@@ -12,7 +12,7 @@ import csv
 import requests
 from colorama import Fore
 
-from url import Url
+from .url import Url
 
 
 # pylint: disable=C0111
