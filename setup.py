@@ -11,7 +11,7 @@ with open('README.md', 'r', 'utf-8') as f:
 
 
 about = {}
-with open(os.path.join(here, 'app', '__version__.py'), 'r', 'utf-8') as f:
+with open(os.path.join(here, 'checklinks', '__version__.py'), 'r', 'utf-8') as f:
     exec(f.read(), about)
 
 setup(name=about['__title__'],
